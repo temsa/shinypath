@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "node_modules/.bin/mocha -R spec"
+    "test": "node_modules/.bin/mocha -R spec",
+    "generate": "node_modules/.bin/pegjs --track-line-and-column shinypath.peg lib/shinypath.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
   "license": "BSD",
   "dependencies": {
     "mocha": "~1.6.0",
-    "should": "~1.2.0"
+    "should": "~1.2.0",
+    "pegjs": "~0.7.0"
   }
 }
