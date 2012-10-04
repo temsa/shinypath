@@ -1,0 +1,97 @@
+start = p:path
+
+path = _ first:identifier parts:(_ p:path_part _ {return p;})* _ {
+ return function fromPath(obj) {
+  parts.unshift(first);
+  var selected = obj;
+//console.log("selected", selected)
+  for( var i=0; i<parts.length; i++) {
+//console.log("parts[i]", parts[i])
+   selected = parts[i](selected);
+//console.log("selected", selected)
+  }
+  return selected;
+ }
+}
+
+path_part = "." _ key:identifier {return key;}
+            / key:braced_part
+
+
+braced_part = "[" _ key:(string / int ) _ "]" {
+ return function fromBraced(o) {
+  //console.log(arguments, key, o);
+  return typeof o !== "undefined" ? o[key]: undefined;
+ }
+}
+
+identifier = key:identifier_string {
+ return function fromIdentifier (o) {
+  //console.log(arguments, key, o);
+  return typeof o!== "undefined" ? o[key]: undefined;}
+}
+
+
+identifier_string = first:[a-zA-Z_$] rest:[a-zA-Z0-9_$]* { return first + rest.join(""); }
+
+string "string"
+  = '"' chars:double_string_char* '"' { return chars.join(""); }
+  / "'" chars:single_string_char* "'" { return chars.join(""); }
+
+double_string_char
+  = !('"' / "\\") char_:. { return char_; }
+  / "\\" sequence:escape_sequence { return sequence; }
+
+single_string_char
+  = !("'" / "\\") char_:. { return char_; }
+  / "\\" sequence:escape_sequence { return sequence; }
+
+escape_sequence
+  = character_escape_sequence
+  / "0" !digit { return "\0"; }
+  / hex_escape_sequence
+  / unicode_escape_sequence
+
+character_escape_sequence
+  = single_escape_character
+  / non_escape_character
+
+single_escape_character
+  = char_:['"\\bfnrtv] { return char_.replace("b", "\b").replace("f", "\f").replace("n", "\n").replace("r", "\r").replace("t", "\t").replace("v", "\x0B"); }
+
+non_escape_character
+  = !escape_character char_:. { return char_; }
+
+escape_character
+  = single_escape_character
+  / digit
+  / "x"
+  / "u"
+
+hex_escape_sequence
+  = "x" h1:hex_digit h2:hex_digit { return String.fromCharCode(+("0x" + h1 + h2)); }
+
+unicode_escape_sequence
+  = "u" h1:hex_digit h2:hex_digit h3:hex_digit h4:hex_digit { return String.fromCharCode(+("0x" + h1 + h2 + h3 + h4)); }
+
+int
+  = digit19:digit19 digits:digits { return digit19 + digits; }
+  / digit:digit
+
+digits
+  = digits:digit+ { return digits.join(""); }
+
+digit
+  = [0-9]
+
+digit19
+  = [1-9]
+
+hex_digit
+  = [0-9a-fA-F]
+
+_ "whitespace"
+  = whitespace*
+
+whitespace
+  = [ \t\n\r]
